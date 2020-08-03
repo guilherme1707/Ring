@@ -13,7 +13,7 @@ This Diagram show how Ring is expected to work in the business.
 
 ## Instalation
 
-> If you prefer, you can create a docker image and run a container of the application. Step by step available [here](https://github.com/dafiti-group/ring/wiki/Criando-uma-imagem-docker-para-o-Ring) in Portuguese only.
+> If you prefer, you can create a docker image and run a container of the application. Step by step available [here](https://github.com/guilherme1707/Ring/wiki/Criando-uma-imagem-docker-para-o-Ring) in Portuguese only.
 
 ##### REQUIREMENTS
 
