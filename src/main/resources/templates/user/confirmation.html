@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>
+        <th:block th:include="base/header :: navbar"></th:block>
+        <div class="container-fluid main-content">
+            <div class="row" style="margin-top:5%">
+                <img th:src="@{/images/recovery.png}" style="display: block;margin-left: auto;margin-right: auto;width: 7.5%" alt="Ring Restore"></img>
+            </div>
+            <div class="row" style="margin-top:20px">
+                <div class="col-xs-6 col-sm-6 col-md-6 col-sm-offset-2 col-md-offset-3">
+                    <form th:action="@{/user/confirmation}" method="post" th:object="${user}">
+                        <fieldset>
+                            <center>
+                                <p>Insert the confirmation code sent to your email in the field below to reset your password.</p>
+                                <div class="form-group">
+                                    <input class="form-control" type="text" placeholder="Insert your code" required="true" th:field="*{resetCode}"/>
+                                    <span th:if="${#fields.hasErrors('resetCode')}" class="help-block" th:errors="*{resetCode}"></span>
+                                    <input class="form-control" type="hidden" th:field="*{id}"/>
+                                </div>
+
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-generic btn-sm">
+                                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Confirm
+                                    </button>
+                                </div>
+                            </center>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

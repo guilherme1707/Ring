@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+
+    <body>
+        <th:block th:include="base/header :: navbar"></th:block>
+        <div class="container-fluid main-content">
+            <div class="tab-content">
+                <table>
+                    <tr>
+                        <th>
+                            <h3 class="page-title" title="Type manual input name">Search</h3>
+                        </th>
+                    </tr>            
+                </table>
+
+                <div style="margin-top:10px">
+                    <div class="form-group">
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="search"/>
+                    </div>
+
+                    <div class="row">
+                        <button 
+                            id="search-button" 
+                            class="btn btn-generic pull-right" 
+                            type="button">
+
+                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search
+                        </button>     
+
+                        <button 
+                            id="wait" 
+                            type="button" 
+                            class="btn btn-default btn-sm pull-left" 
+                            style="display:none;">
+
+                            <img th:src="@{'/images/ajax-loader.gif'}"></img>
+                        </button>
+                    </div>
+                </div>
+
+                <hr/>
+
+                <!--Search history-->
+                <nav th:if="${not #lists.isEmpty(searches)}">
+                    <ul class="pager">
+                        <li th:each="search, searchStat : ${searches}">
+                            <button class="btn btn btn-default btn-xs search-history-button" 
+                                    th:id="'search_' + ${searchStat.index}" 
+                                    th:inline="text" 
+                                    th:value="${search}">[[${search}]]</button>
+                        </li>
+                    </ul>
+                </nav>   
+
+                <!--Fragment--> 
+                <div id="fragmentSearchResultHolder"/>
+            </div>
+        </div>
+
+        <script th:inline="javascript">
+            $(document).ready(function () {
+                /**
+                 * Set header CSRF Token.
+                 * @returns {undefined}
+                 */
+                $.ajaxSetup({
+                    headers: {'X-CSRF-Token': $('#_csrf').attr('content')}
+                });
+
+                /**
+                 * Set the focus on search input.
+                 */
+                $("#search").focus();
+
+                /**
+                 * Define ajax start behavior. 
+                 * @returns {undefined}
+                 */
+                $(document).ajaxStart(function () {
+                    $("#wait").css("display", "block");
+                    $("#search").prop("disabled", true);
+                    $("#search-button").prop("disabled", true);
+                });
+
+                /**
+                 * Define ajax complete behavior. 
+                 * @returns {undefined}
+                 */
+                $(document).ajaxComplete(function () {
+                    $("#wait").css("display", "none");
+                    $("#search").prop("disabled", false);
+                    $("#search-button").prop("disabled", false);
+                });
+
+                /**
+                 * Trigger job details search on Enter click. 
+                 */
+                $('#search').keyup(function (e) {
+                    if (e.keyCode === 13) {
+                        search($('#search').val());
+                    }
+                });
+
+                /**
+                 * Trigger job details search on search button click. 
+                 */
+                $("#search-button").click(function () {
+                    search($('#search').val());
+                });
+
+
+                /**
+                 * Trigger job details search on history click.
+                 * @returns {undefined}
+                 */
+                $("[id^=search_]").click(function () {
+                    search($(this).val());
+                });
+
+                /**
+                 * Search for job that match the search input value. 
+                 * @returns {undefined}
+                 */
+                function search(search) {
+                    var url = /*[[@{/search/details/}]]*/ "/search/details/";
+
+                    if (search !== "") {
+                        $.ajax({
+                            type: "POST",
+                            url: url,
+                            data: search,
+                            contentType: "text/html",
+                            timeout: 30000,
+                            success: function (result) {
+                                $("#fragmentSearchResultHolder").html(result);
+
+                                $('.table').DataTable(
+                                        {
+                                            "paging": false,
+                                            "info": false,
+                                            "searching": false,
+                                            "order": [],
+                                            "columnDefs": [{
+                                                    "targets": 'no-sort',
+                                                    "orderable": false
+                                                }
+                                            ]
+                                        });
+                            },
+                            error: function (e) {
+                                alert("Fail loading manual inputs " + e);
+                            }
+                        });
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>

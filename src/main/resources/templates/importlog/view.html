@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>
+        
+        <th:block th:include="base/header :: navbar"></th:block>
+        
+        <div class="container-fluid main-content">
+            
+            <table>
+                <tr>
+                    <th>
+                        <h2 class="page-title">Log</h2>
+                    </th>
+                    <th class="btn-action">
+                        <a th:href="@{'/manual-input/view/' + ${log.manualInput.id}}" title="Back to Manual Input" class="glyphicon glyphicon-arrow-left link-btn-ico-sm-2 black-link"></a>
+                    </th>
+                </tr>
+            </table>
+            
+            <div class="col-sm-12">
+                <pre th:text="${log.text}" ></pre>
+                <pre th:if="${!log.status.equals('RUNNING')}" th:text="${log.status}" ></pre>
+            </div>
+        </div>
+    </body>
+</html>

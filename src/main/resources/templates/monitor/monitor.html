@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>
+
+        <th:block th:include="base/header :: navbar"></th:block>
+        <div class="container-fluid main-content">
+            
+		<center>
+			<h3>Welcome to Ring</h3>
+			<br />
+                        <pre>
+Ring is a tool to keep track of user generated NoSQL data,
+where you can define a template, upload files and validate uploaded data.
+This way Ring becomes a new source you can integrate with your tools extracting data via API,
+and Ring will take care of providing data in a more fault-tolerant way to your processes.
+                        </pre>
+		</center>
+		<br />
+		<div class="list-group">
+
+  			<a class="list-group-item list-group-item-action flex-column align-items-start" th:href="@{/manual-input/list}">
+		    	<div class="d-flex w-100 justify-content-between">
+		      		<h5 class="mb-1">Manual Inputs</h5>
+		    	</div>
+		    	<p class="mb-1">
+					This feature enables the creation of templates that says the pattern
+                                        the user file should follow to upload in the system
+				</p>
+	  		</a>
+	  		<a class="list-group-item list-group-item-action flex-column align-items-start" th:href="@{/group/list}">
+		    	<div class="d-flex w-100 justify-content-between">
+		      		<h5 class="mb-1">Groups</h5>
+	    		</div>
+	    		<p class="mb-1">It is possible to register access groups for users, 
+	    		that defines a set of manual input of the group and what users can
+                        manage that.</p>
+	  		</a>
+	  		<a class="list-group-item list-group-item-action flex-column align-items-start" th:href="@{/user/list}">
+		    	<div class="d-flex w-100 justify-content-between">
+		      		<h5 class="mb-1">Users</h5>
+	    		</div>
+	    		<p class="mb-1">This feature allows the creation of new users 
+	    		to the systems. it is also possible 
+	    		to link specific accesses for this user and / or to link them to groups.</p>
+	  		</a>
+	  		<!--<a class="list-group-item list-group-item-action flex-column align-items-start" th:href="@{/log/list}">
+		    	<div class="d-flex w-100 justify-content-between">
+		      		<h5 class="mb-1">Log</h5>
+	    		</div>
+	    		<p class="mb-1">This feature contains information about commands executed on Ring.</p>
+	  		</a>-->
+		</div>
+            
+        </div>
+    </body>
+</html>

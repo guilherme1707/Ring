@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>
+
+        <th:block th:include="base/header :: navbar"></th:block>
+
+        <div class="container-fluid main-content">
+
+            <h2>Manual Input</h2>
+
+            <form class="form-horizontal" method="post" th:action="@{/manual-input/save}" th:object="${manualInput}">
+                <input type='hidden' th:field='*{id}'/>
+                <input type="hidden" th:field="*{divisionGroups}" th:if="${groups == null}"/>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <label>Manual Input Name:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12" >
+                                <input type="text" class="form-control" th:if="${manualInput.name == null}" th:field="*{name}" style="text-transform:lowercase" required="true" pattern="[a-z0-9_]*" title="Field name should contain only lower case characters, numbers and underscore! Spaces and special characters are not allowd." />
+                                <input type="text" class="form-control" th:if="${manualInput.name != null}" readonly="true" th:field="*{name}" style="text-transform:lowercase" required="true" pattern="[a-z0-9_]*"  />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" >
+                    <div class="col-lg-9">
+                        <label>Group:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12" >
+                                <select class="selectpicker form-control" 
+                                        data-live-search="true"
+                                        th:if="${groups != null}"
+                                        th:field="*{originDivisionGroup}" 
+                                        required="true">
+
+                                    <option th:each="group : ${groups}"
+                                            th:value="${group.id}"
+                                            th:text="${group.name}"></option>
+                                </select>
+                                <input type="text" th:value="*{originDivisionGroup.name}" th:if="${groups == null}" class="form-control" readonly="true" />
+                                <input type="hidden" th:field="*{originDivisionGroup}" th:if="${groups == null}" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label>File Type:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12" >
+                                <input type="text" th:field="*{fileType}" class="form-control" readonly="true" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-check">
+                            <input type="checkbox" id="alterable" name="alterable" th:field="*{alterable}" th:checked="*{alterable}" th:attr="disabled=${#authorization.expression('hasRole(''LORD'')') == false && manualInput.alterable == false}" />
+                            <label class="checkbox-label" for="alterable">Can be modified (add field, change data type or recreate)</label>
+                        </div>
+                    </div>
+                </div>
+                <br/>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <label>Description:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12" >
+                                <textarea class="form-control" rows="3" th:field="*{description}" required="true" title="Describe the purpose of this Manual Input" ></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- display this part if CSV is the file type -->
+                <div th:if="${manualInput.fileType.toString().equals('CSV')}" >
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <label>Delimiter:</label>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <input type="text" class="form-control" th:field="*{delimiterChar}" maxlength="1" required="true" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <label>Quote:</label>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <input type="text" class="form-control" th:field="*{quoteChar}" maxlength="1" required="true"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <label>Escape:</label>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <input type="text" class="form-control" th:field="*{escapeChar}" maxlength="1" required="true"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <label>Line Separator:</label>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <input type="text" class="form-control" th:field="*{lineSeparator}" maxlength="5" required="true" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- display this part if GSHEETS is the file type -->
+                <div th:if="${manualInput.fileType.toString().equals('GSHEETS')}" >
+
+                    <div class="col-lg-6">
+                        <label>SpreadSheet Key:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="text" class="form-control" th:field="*{spreadsheetKey}" required="true" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label>Sheet Name:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="text" class="form-control" th:field="*{sheetName}" required="true" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label>Range:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="text" class="form-control" th:field="*{spreadsheetRange}" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- display this part if XLSX is the file type -->
+                <div th:if="${manualInput.fileType.toString().equals('XLSX')}" >
+                    
+                    <div class="col-lg-12">
+                        <label>Sheet Name:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="text" class="form-control" th:field="*{sheetName}" required="true" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr/>
+
+                <div th:if="${ errorMessage != null }" class="form-group">
+                    <!--Validation-->
+                    <div class="col-sm-10">
+                        <div class="alert alert-danger" role="alert">
+                            <span th:text="${errorMessage}"></span>
+                        </div>  
+                    </div> 
+                </div> 
+
+                <h2>Metadata</h2>
+                <a class="glyphicon glyphicon-question-sign pull-right link-btn-ico-sm blue-link" role="button" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample" title="How to set metadata?" >
+                </a>
+                <br/><br/>
+                <div class="collapse" id="collapseExample">
+                    <div class="well">
+                        Fields name should match the pattern <span class="simple-code-color-blue">[0-9a-z_]*</span><br/>
+                        Should not contains spaces or special characters.<br/>
+                        <br/>
+                        Use <span class="simple-code-color-blue">NONE</span> validation if you don't want to validate the field.<br/>
+                        <br/>
+                        For fields of type <span class="simple-code-color-pink">TEXT</span> use one of the following comparators for validation:<br/>
+                        <span class="simple-code-color-blue">REGEX</span><br/>
+                        <span class="simple-code-color-blue">CONTAINS</span><br/>
+                        <span class="simple-code-color-blue">NOT_CONTAINS</span><br/>
+                        <br/>
+                        For fields of type <span class="simple-code-color-pink">NUMERIC</span> or <span class="simple-code-color-pink">DATES</span> use one of the following comparators for validation:<br/>
+                        <span class="simple-code-color-blue">EQUAL, LOWER_THAN</span><br/>
+                        <span class="simple-code-color-blue">NOT_EQUAL, GREATER_THAN</span><br/>
+                        <span class="simple-code-color-blue">LOWER_THAN_OR_EQUAL, GREATER_THAN_OR_EQUAL</span><br/>
+                        <br/>
+                        For DATE and DATE_AND_TIME compare with right formatted text:<br/>
+                        <span class="simple-code-color-blue">YYYY-MM-DD</span> for <span class="simple-code-color-pink">DATE</span> data type<br/>
+                        <span class="simple-code-color-blue">YYYY-MM-DD HH:MI:SS</span> for <span class="simple-code-color-pink">DATE_AND_TIME</span> data type<br/>
+                        <br/>
+                        Select fields as Business Key to define a combination for a unique row identification in file
+                    </div>
+                </div>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Field Name</th>
+                            <th>Data Type</th>
+                            <th>Validation</th>
+                            <th>Threshold</th>
+                            <th>Business Key</th>
+                            <th>Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="field, fieldStat : ${manualInput.metadata}" th:attr="class=${field.isActive ? '' : 'hidden'}">
+                            <td>
+                                <input type="hidden" th:field="*{metadata[__${fieldStat.index}__].pending}" />
+                                <input type="hidden" th:field="*{metadata[__${fieldStat.index}__].isActive}" />
+                                <input type="hidden" th:field="*{metadata[__${fieldStat.index}__].ordinalPosition}" />
+                                <input type="hidden" hidden="true" th:field="*{metadata[__${fieldStat.index}__].id}" />
+                                <input type="text" required="true" pattern="[a-z0-9_]*" title="Field name should contain only lower case characters, numbers and underscore! Spaces and special characters are not allowd." class="form-control" th:field="*{metadata[__${fieldStat.index}__].fieldName}"/>
+                            </td>
+                            <td>
+                                <select class="form-control" th:field="*{metadata[__${fieldStat.index}__].dataType}">
+                                    <option th:each="dtype : ${T(br.com.dafiti.ring.option.DataType).values()}"
+                                            th:value="${dtype}"
+                                            th:text="${dtype}"></option>
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-control" th:field="*{metadata[__${fieldStat.index}__].test}">
+                                    <option th:each="condition : ${T(br.com.dafiti.ring.option.Conditional).values()}"
+                                            th:value="${condition}"
+                                            th:text="${condition}"></option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" th:field="*{metadata[__${fieldStat.index}__].threshold}"/>
+                            </td>
+                            <td>
+                                <div class="form-group">
+                                    <div class="col-sm-5">
+                                        <input type="checkbox" class="form-control" th:field="*{metadata[__${fieldStat.index}__].isBusinessKey}" th:checked="*{metadata[__${fieldStat.index}__].isBusinessKey}"/>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-group">
+                                    <div class="col-sm-5">
+                                        <button type="submit" class="glyphicon glyphicon-minus-sign link-btn-ico-sm red-link" aria-label="close" style="padding:10px;" name="remove_field_from_metadata" th:value="${fieldStat.index}" >
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="form-group">
+                    <div class="btn-group dropup">
+                        <button type="submit" class="btn btn-generic">Save</button>
+                        <button type="button" class="btn btn-generic dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="caret"></span>
+                            <span class="sr-only">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li class="dropdown-menu-hover"><button type="button" class="btn-as-text" data-toggle="modal" data-target="#confirmRecreate">Recreate and Save</button></li>
+                        </ul>
+                    </div>
+                    <div class="btn-group pull-right btn-space dropup">
+                        <button type="submit" name="add_field_to_metadata" class="glyphicon glyphicon-plus-sign green-link link-btn-ico-lg" title="Add new field"></button>
+                    </div>
+                </div>
+
+                <!-- Modal for confirm recreate metadata -->
+                <div class="modal fade" id="confirmRecreate" tabindex="-1" role="dialog" aria-labelledby="confirmRecreateLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="confirmRecreateLabel">Are you sure?</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                If you recraete this manual input you will lose all data inputed previously.
+                                Do you want to continue?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-generic" name="recreate_manual_input">Yes</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+        </div>
+    </body>
+</html>

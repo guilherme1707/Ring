@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>
+
+        <th:block th:include="base/header :: navbar"></th:block>
+
+        <div class="container-fluid main-content">
+
+            <table>
+                <tr>
+                    <th>
+                        <h2 class="page-title">Manual Input</h2>
+                    </th>
+                    <th class="btn-action">
+                        <div class="btn-group">
+                            <a href="#" title="Create Manual Input" class="glyphicon glyphicon-plus dropdown-toggle link-btn-ico-size-12 black-link" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="black-link" th:href="@{'/manual-input/create?type=CSV'}">For CSV File</a></li>
+                                <li><a class="black-link" th:href="@{'/manual-input/create?type=XLSX'}">For XLSX File</a></li>
+                                <li><a class="black-link" th:href="@{'/manual-input/create?type=GSHEETS'}">For Google Sheets</a></li>
+                            </ul>
+                        </div>
+                    </th>
+                </tr>
+            </table>
+
+            <div th:if="${ errorMessage != null }" class="form-group">
+                <div class="alert alert-danger" role="alert">
+                    <span th:text="${errorMessage}"></span>
+                </div>  
+            </div>
+
+            <div role="group">
+                <a class="glyphicon glyphicon-time pull-right link-btn-ico-sm-2 black-link icon-space" th:if="${showLog == null}" role="button" data-toggle="collapse" data-target="#collapseLogHistory" aria-expanded="false" aria-controls="collapseLogHistory" title="Log History"></a>
+                <a class="glyphicon glyphicon-time pull-right link-btn-ico-sm-2 black-link icon-space" th:if="${showLog != null}" role="button" data-toggle="collapse" data-target="#collapseLogHistory" aria-expanded="true" aria-controls="collapseLogHistory" title="Log History"></a>
+                <a class="glyphicon glyphicon-open pull-right link-btn-ico-sm-2 black-link icon-space" role="button" title="Import File" href="#" data-toggle="modal" data-target="#modalImportFile"></a>
+                <a class="glyphicon glyphicon-pencil pull-right link-btn-ico-sm-2 black-link icon-space" role="button" th:href="@{'/manual-input/edit/' + ${manualInput.id}}" title="Edit" ></a>
+                <a class="glyphicon glyphicon-trash pull-right link-btn-ico-sm-2 black-link" role="button" th:href="@{'/manual-input/delete/' + ${manualInput.id}}" title="Delete Manual Input" ></a>
+            </div>
+            <br/><br/>
+
+            <!-- keep open -->
+            <div class="collapse in" th:if="${showLog != null}" id="collapseLogHistory">
+                <div class="well">
+                    <h3>Log History</h3><br/>
+                    <table class="table" th:if="${not #lists.isEmpty(logList)}">
+                        <thead>
+                            <tr>
+                                <td>Status</td>
+                                <td>Process Id</td>
+                                <td>Start Date</td>
+                                <td>End Date</td>
+                                <td>User</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="log : ${logList}" th:attr="data-href=@{'/log/import/' + ${log.id}}" class="clickable-row" >
+                                <td>
+                                    <span th:if="${log.status.toString().equals('RUNNING')}" class="glyphicon glyphicon-refresh blue-link link-btn-ico-sm" title="RUNNING" ></span>
+                                    <span th:if="${log.status.toString().equals('ERROR')}" class="glyphicon glyphicon-remove-sign red-link link-btn-ico-sm" title="ERROR" ></span>
+                                    <span th:if="${log.status.toString().equals('SUCCESS')}" class="glyphicon glyphicon-ok-sign green-link link-btn-ico-sm" title="SUCCESS" ></span>
+                                </td>
+                                <td th:text="${'#' + log.id}" ></td>
+                                <td th:text="${log.createdAt}" ></td>
+                                <td th:text="${log.updatedAt}" ></td>
+                                <td th:text="${log.createdBy}" ></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- keep hidden -->
+            <div class="collapse" th:if="${showLog == null}" id="collapseLogHistory">
+                <div class="well">
+                    <h3>Log History</h3><br/>
+                    <table class="table" th:if="${not #lists.isEmpty(logList)}">
+                        <thead>
+                            <tr>
+                                <td>Status</td>
+                                <td>Process Id</td>
+                                <td>Start Date</td>
+                                <td>End Date</td>
+                                <td>User</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="log : ${logList}" th:attr="data-href=@{'/log/import/' + ${log.id}}" class="clickable-row" >
+                                <td>
+                                    <span th:if="${log.status.toString().equals('RUNNING')}" class="glyphicon glyphicon-refresh blue-link link-btn-ico-sm" title="RUNNING" ></span>
+                                    <span th:if="${log.status.toString().equals('ERROR')}" class="glyphicon glyphicon-remove-sign red-link link-btn-ico-sm" title="ERROR" ></span>
+                                    <span th:if="${log.status.toString().equals('SUCCESS')}" class="glyphicon glyphicon-ok-sign green-link link-btn-ico-sm" title="SUCCESS" ></span>
+                                </td>
+                                <td th:text="${'#' + log.id}" ></td>
+                                <td th:text="${log.createdAt}" ></td>
+                                <td th:text="${log.updatedAt}" ></td>
+                                <td th:text="${log.createdBy}" ></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <form class="form-horizontal" enctype="multipart/form-data" th:method="post" th:object="${manualInput}" th:action="@{'/manual-input/uploadfile/' + ${manualInput.id} + '?' + ${_csrf.parameterName} + '=' + ${_csrf.token}}">
+                <input type='hidden' th:field='*{id}'/>
+                <input type="hidden" 
+                       th:name="${_csrf.parameterName}" 
+                       th:value="${_csrf.token}" />
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <label>Manual Input Name:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12" >
+                                <input type="text" class="form-control" th:field="*{name}" disabled="true" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" >
+                    <div class="col-lg-9">
+                        <label>Group:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12" >
+                                <input type="text" th:field="*{originDivisionGroup.name}" class="form-control" disabled="true" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label>File Type:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12" >
+                                <input type="text" th:field="*{fileType}" class="form-control" disabled="true" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-check">
+                            <input type="checkbox" id="alterable" name="alterable" th:field="*{alterable}" th:checked="*{alterable}" disabled="true" />
+                            <label class="checkbox-label" for="rebuild">Can be modified (add field, change data type or recreate)</label>
+                        </div>
+                    </div>
+                </div>
+                <br/>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <label>Description:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12" >
+                                <textarea class="form-control" th:field="*{description}" disabled="true" rows="3" ></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- display this part if CSV is the file type -->
+                <div th:if="${manualInput.fileType.toString().equals('CSV')}" >
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <label>Delimiter:</label>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <input type="text" class="form-control" th:field="*{delimiterChar}" disabled="true" maxlength="1" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <label>Quote:</label>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <input type="text" class="form-control" th:field="*{quoteChar}" disabled="true" maxlength="1"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <label>Escape:</label>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <input type="text" class="form-control" th:field="*{escapeChar}" disabled="true" maxlength="1"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <label>Line Separator:</label>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <input type="text" class="form-control" th:field="*{lineSeparator}" disabled="true" maxlength="5" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- display this part if GSHEETS is the file type -->
+                <div th:if="${manualInput.fileType.toString().equals('GSHEETS')}" >
+
+                    <div class="col-lg-6">
+                        <label>SpreadSheet Key:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="text" class="form-control" th:field="*{spreadsheetKey}" disabled="true" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label>Sheet Name:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="text" class="form-control" th:field="*{sheetName}" disabled="true" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label>Range:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="text" class="form-control" th:field="*{spreadsheetRange}" disabled="true" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- display this part if XLSX is the file type -->
+                <div th:if="${manualInput.fileType.toString().equals('XLSX')}" >
+
+                    <div class="col-lg-12">
+                        <label>Sheet Name:</label>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="text" class="form-control" th:field="*{sheetName}" disabled="true" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr/>
+
+                <h2>Metadata</h2>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Field Name</th>
+                            <th>Data Type</th>
+                            <th>Validation</th>
+                            <th>Threshold</th>
+                            <th>Business Key</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="field, fieldStat : ${manualInput.metadata}" th:attr="class=${field.isActive ? '' : 'hidden'}">
+                            <td>
+                                <input type="hidden" hidden="true" th:field="*{metadata[__${fieldStat.index}__].ordinalPosition}" />
+                                <input type="hidden" hidden="true" th:field="*{metadata[__${fieldStat.index}__].id}" />
+                                <input type="text" disabled="true" style="text-transform:lowercase" required="true" pattern="[a-z0-9_]*" title="Field name should contain only lower case characters, numbers and underscore! Spaces and special characters are not allowd." class="form-control" th:field="*{metadata[__${fieldStat.index}__].fieldName}"/>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" th:field="*{metadata[__${fieldStat.index}__].dataType}" disabled="true" />
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" th:field="*{metadata[__${fieldStat.index}__].test}" disabled="true" />
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" th:field="*{metadata[__${fieldStat.index}__].threshold}" disabled="true" />
+                            </td>
+                            <td>
+                                <div class="form-group">
+                                    <div class="col-sm-5">
+                                        <input type="checkbox" disabled="true" class="form-control" th:field="*{metadata[__${fieldStat.index}__].isBusinessKey}" th:checked="*{metadata[__${fieldStat.index}__].isBusinessKey}"/>
+                                    </div>
+                                </div>
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- -->
+                <div class="modal fade" id="modalImportFile" tabindex="-1" role="dialog" aria-labelledby="modalImportFileLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalImportFileLabel">Import File</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <!-- for CSV -->
+                            <div class="modal-body" th:if="${manualInput.fileType.toString().equals('CSV')}">
+                                Select a CSV file...
+                                <input type="file" name="upload_file" required="true" class="btn btn-success-2" accept=".csv" style="display: block;" />
+                            </div>
+                            <!-- for XLSX -->
+                            <div class="modal-body" th:if="${manualInput.fileType.toString().equals('XLSX')}">
+                                Select a XLSX file...
+                                <input type="file" name="upload_file" required="true" class="btn btn-success-2" accept=".xlsx" style="display: block;" />
+                            </div>
+                            <!-- for GSHEETS -->
+                            <div class="modal-body" th:if="${manualInput.fileType.toString().equals('GSHEETS')}">
+                                <pre>You are about to start extracting data from Google Sheets to your manual input.<br/>Click "Extract" to continue.</pre>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-generic" th:if="${manualInput.fileType.toString().equals('GSHEETS')}">Extract</button>
+                                <button type="submit" class="btn btn-generic" th:if="${!manualInput.fileType.toString().equals('GSHEETS')}">Upload</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+        <script>
+            $(document).ready(function ($) {
+                $(".clickable-row").click(function () {
+                    window.document.location = $(this).data("href");
+                });
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>
+        <div class="container">
+            <!--Fragment-->
+            <div th:fragment="searchResult">
+                <table id="table" class="table table-striped dataTable no-footer">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th style="width:35%">Group</th>
+                            <th style="width:50%">Name</th>
+                            <th style="width:5%" class="no-sort no-search"></th>
+                            <th style="width:5%" class="no-sort no-search"></th>
+                            <th style="width:5%" class="no-sort no-search"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="manualinput : ${manualInputList}">
+                            <td th:text="${manualinput.id}"></td>
+                            <td th:text="${manualinput.originDivisionGroup.name}"></td>
+                            <td th:text="${manualinput.name}"></td>
+                            <td>
+                                <a th:href="@{'/manual-input/view/' + ${manualinput.id}}" class="glyphicon glyphicon-eye-open link-btn-ico-sm-3 black-link" title="View Manual Input" >
+                                </a>
+                            </td>
+                            <td>
+                                <a th:href="@{'/manual-input/edit/' + ${manualinput.id}}" class="glyphicon glyphicon-pencil link-btn-ico-sm-3 black-link" title="Edit Manual Input" >
+                                </a>
+                            </td>
+                            <td>
+                                <div class="form-group">
+                                    <button class="glyphicon glyphicon-trash link-btn-ico-sm-3 black-link" th:attr="onclick='modalDelete(' + ${manualinput.id} + ',\'' + ${manualinput.name} + '\');'" title="Delete Manual Input" ></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!--Begin delete modal-->
+                <div class="modal fade" id="modalDelete" tabindex="-1" role="dialog" aria-labelledby="modalDelete">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="modalParentLabel"> Delete manual input: <span style="font-weight:bold" id="modalManualInputName"></span></h4>
+                            </div>
+                            <div class="modal-body">
+                                <span>Are you sure?</span>
+                            </div>
+                            <div class="modal-footer"> 
+                                <a id="modalConfirmDel" class="col-xs-5 col-sm-5 col-md-5 btn btn-default btn-sm">
+                                    Yes
+                                </a>
+                                <a class="col-xs-5 col-sm-5 col-md-5 btn btn-default btn-sm" data-dismiss="modal" aria-label="Close">
+                                    No
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script type="text/javascript" th:inline="javascript">
+                    /**
+                     * Show a modal delete. 
+                     * 
+                     * @param {type} id
+                     * @param {type} name
+                     * @returns {undefined}
+                     */
+                    function modalDelete(id, name) {
+                        document.getElementById("modalManualInputName").innerText = name;
+                        document.getElementById("modalConfirmDel").href = 'delete/' + id;
+                        $("#modalDelete").modal();
+                    }
+                </script>
+
+            </div>
+        </div>       	
+    </body>
+</html>

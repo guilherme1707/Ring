@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>
+        <th:block th:include="base/header :: navbar"></th:block>
+
+        <script th:inline="javascript">
+            //<![CDATA[
+            $(document).ready(
+                    function () {
+                        $("#email").blur(function () {
+                            var email = $(this).val();
+
+                            if (isEmail(email) && $("#username").val() == "") {
+                                var username = $("#username");
+                                username.val(getUsername(email));
+
+                                var firstname = getFirstname(username
+                                        .val());
+
+                                if (firstname != "" && $("#firstname").val() == "") {
+                                    $("#firstname").val(
+                                            firstname);
+                                }
+
+                                var lastname = getLastname(username
+                                        .val());
+
+                                if (lastname != "" && $("#lastname").val() == "") {
+                                    $("#lastname").val(
+                                            lastname);
+                                }
+                            }
+                        }
+                        );
+
+                        // Extract user name based on email (get name before @).
+                        function getUsername(email) {
+                            var n = email.indexOf("@");
+                            var username = email.substring(0, n);
+
+                            return username;
+                        }
+
+                        // Get first name if username has a dot (.)
+                        function getFirstname(username) {
+                            var n = username.indexOf(".");
+                            var firstname = "";
+
+                            if (n != -1) {
+                                firstname = username.substring(0, n);
+                            }
+
+                            return firstUpperCase(firstname);
+                        }
+
+                        // Get Last name if username has a dot (.)
+                        function getLastname(username) {
+                            var n = username.indexOf(".");
+                            var firstname = "";
+
+                            if (n != -1) {
+                                firstname = username.substring(n + 1);
+                            }
+
+                            return firstUpperCase(firstname);
+                        }
+
+                        // Verify if is e-mail.
+                        function isEmail(email) {
+                            var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+                            return regex.test(email);
+                        }
+
+                        // Put first letter in a word in uppercase.
+                        function firstUpperCase(text) {
+                            var words = text.toLowerCase().split(" ");
+                            for (var a = 0; a < words.length; a++) {
+                                var w = words[a];
+                                words[a] = w[0].toUpperCase() + w.slice(1);
+                            }
+                            return words.join(" ");
+                        }
+                    });
+            //]]>
+        </script>
+
+        <div class="container-fluid main-content">
+            <h3 class="page-title">User</h3>
+            <div>
+                <form class="form-horizontal" 
+                      th:object="${user}"                      
+                      th:action="@{/user/save}" 
+                      method="post">
+
+                    <input type="hidden" class="form-control" th:field="*{password}"/>
+
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <input type="hidden" class="form-control" th:field="*{id}" />
+                        </div>
+                    </div>
+
+                    <div th:if="${ errorMessage != null }" class="form-group">
+                        <!--Validation-->
+                        <div class="col-sm-10">
+                            <div class="alert alert-danger" role="alert">
+                                <span th:text="${errorMessage}"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email-->
+                    <label>E-mail</label>
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="email"
+                                   th:field="*{email}" 
+                                   required="true" 
+                                   placeholder="E-mail" 
+                                   th:readonly="*{id != null}" /> 
+
+                            <span
+                                th:if="${#fields.hasErrors('email')}" 
+                                class="help-block alertErr"
+                                th:errors="*{email}"></span>
+                        </div>
+                    </div>
+
+                    <!--Username-->
+                    <label>Username</label>
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="username"
+                                   th:field="*{username}" 
+                                   required="true" 
+                                   placeholder="User name" 
+                                   th:readonly="*{id != null}" />
+
+                            <span th:if="${#fields.hasErrors('username')}"
+                                  class="help-block alertErr" 
+                                  th:errors="*{username}"></span>
+                        </div>
+                    </div>
+
+                    <label>First Name</label>
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="firstname"
+                                   th:field="*{firstName}" 
+                                   required="true" 
+                                   placeholder="First Name"/>
+
+                            <span th:if="${#fields.hasErrors('firstName')}"
+                                  class="help-block alertErr" th:errors="*{firstName}"></span>
+                        </div>
+                    </div>
+
+                    <label>Last Name</label>
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="lastname"
+                                   th:field="*{lastName}" 
+                                   required="true" 
+                                   placeholder="Last Name"/>
+
+                            <span th:if="${#fields.hasErrors('lastName')}"
+                                  class="help-block alertErr" th:errors="*{lastName}"></span>
+                        </div>
+                    </div>
+
+                    <div th:if="${#authorization.expression('hasRole(''LORD'')')}">
+                        <label>Role</label>
+                        <div class="form-group">
+                            <div class="col-sm-10">
+                                <select class="selectpicker form-control" 
+                                        data-live-search="true"
+                                        th:field="*{roles}" 
+                                        required="true"
+                                        th:disabled="*{username == #httpServletRequest.remoteUser}">
+
+                                    <option th:each="role : ${roles}" 
+                                            th:value="${role.id}"
+                                            th:text="${role.name}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${#authorization.expression('hasRole(''LORD'')')}">
+                        <label>Group</label>
+                        <div class="form-group">
+                            <div class="col-sm-10">
+                                <select class="selectpicker form-control" 
+                                        data-live-search="true"
+                                        th:field="*{divisionGroup}" 
+                                        required="true"
+                                        th:disabled="*{username == #httpServletRequest.remoteUser}">
+
+                                    <option th:each="group : ${groups}" 
+                                            th:value="${group.id}"
+                                            th:text="${group.name}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Enabled-->
+                    <div class="form-group">
+                        <div class="col-sm-10">
+                            <div class="form-check pull-right">
+                                <input  
+                                    id="userEnabled" 
+                                    name="userEnabled"
+                                    type="checkbox" 
+                                    data-toggle="toggle" 
+                                    data-on="Enabled" 
+                                    data-off="Disabled" 
+                                    data-size="small"
+                                    data-onstyle="default" 
+                                    th:field="*{enabled}" 
+                                    th:checked="*{enabled}"
+                                    th:disabled="*{!#authorization.expression('hasRole(''LORD'')') or username == #httpServletRequest.remoteUser}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr/>
+
+                    <div th:if="*{#authorization.expression('hasRole(''LORD'')') or username == #httpServletRequest.remoteUser}">
+                        <div class="form-group">
+                            <div class="col-sm-10">
+                                <button type="submit" class="btn btn-generic btn-sm">
+                                    <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
+                                    Save
+                                </button>
+
+                                <button 
+                                    type="button" 
+                                    class="btn btn-generic btn-sm pull-right btn-space"
+                                    title="This button will change the user password!"
+                                    th:attr="onclick='modalResetPassword(' + *{id} + ',\'' + *{username} + '\');'"
+                                    th:disabled="*{id == null}">
+
+                                    <span 
+                                        class="glyphicon glyphicon-lock" 
+                                        aria-hidden="true">
+                                    </span>
+                                    Reset password
+                                </button>
+                            </div>
+                        </div>
+                    </div>                    
+
+                    <hr/>
+
+                    <div th:if="*{ updatedAt != null }">
+                        <!--Tracker-->
+                        <div class="form-group">                        
+                            <div class="col-sm-10">
+                                <label class="pull-right label-edit-information" th:inline="text">Updated by [[*{modifiedBy}]] at [[*{#dates.format(updatedAt, 'yyyy-MM-dd HH:mm:ss')}]]</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- INÍCIO MODAL CHANGE PASSWORD -->
+        <div class="modal fade" id="modal_changepassword" tabindex="-1" role="dialog" aria-labelledby="modal_changepassword">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="modalParentLabel">Attention</h4>
+                    </div>
+                    <div class="modal-body">
+                        <span>Are you sure you want to reset user password?</span>
+                    </div>
+                    <div class="modal-footer">
+                        <button href="" id="btn_change_password_" name="btn_change_password_" class="col-xs-5 col-sm-5 col-md-5 btn btn-default btn-sm">
+                            Yes
+                        </button>
+                        <a class="col-xs-5 col-sm-5 col-md-5 btn btn-default btn-sm" data-dismiss="modal" aria-label="Close">
+                            No
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- FIM MODAL CHANGE PASSWORD -->
+
+        <script th:inline="javascript" type="text/javascript">
+            // This function call modal password.
+            function modalResetPassword(id, username) {
+                document.getElementsByName("btn_change_password_")[0].value = id;
+                document.getElementsByName("btn_change_password_")[0].id = "btn_change_password_" + id;
+                $("#modal_changepassword").modal('show');
+            }
+
+            // Reset user password.
+            $(function () {
+                $("[id^=btn_change_password_]").click(function () {
+                    $("#modal_changepassword").modal('hide');
+                    var url = /*[[@{/user/resetpassword/}]]*/ "/user/resetpassword/";
+                    var user = $(this).val();
+
+                    toastr.options = {
+                        "closeButton": true,
+                        "progressBar": true,
+                        "positionClass": "toast-top-right",
+                        "timeOut": 2500,
+                        "showEasing": "swing",
+                        "hideEasing": "linear",
+                        "showMethod": "fadeIn",
+                        "hideMethod": "fadeOut"
+                    }
+
+                    $.ajax({
+                        type: "GET",
+                        url: url + user,
+                        timeout: 30000,
+                        success: function (result) {
+                            // Identify the operation status. 
+                            if (result != "") {
+                                toastr.success('Password successfully changed, an e-mail was sent to the user with the new password!');
+
+                            } else {
+                                toastr.error('Error trying to reset password.');
+
+                            }
+                        },
+                        error: function (e) {
+                            toastr.error('Error trying to reset password.');
+                        }
+                    });
+                });
+            })
+        </script>
+    </body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>
+        <th:block th:include="base/header :: navbar"></th:block>
+        <div class="container-fluid main-content">
+            <h3 class="page-title">Configuration</h3>
+            <div>
+                <form id="configuration" class="form-horizontal space-top" th:object="${configurationGroup}" th:action="@{/settings/save}" method="post">
+                    <div class="form-group">
+                        <!--Validation-->
+                        <div class="col-sm-10">
+                            <div class="alert alert-danger" role="alert" id="errorMessage" style="display: none">
+                            </div>  
+                        </div> 
+                    </div>
+                    <!-- Fetch the configuration group -->
+                    <fieldset th:each="configGroup : ${configurationGroup}">
+                        <legend th:text="${configGroup.name}"></legend>
+                        <!-- Fetch the configuration -->
+                        <div th:each="configuration : ${configGroup.configuration}">
+                            <label th:text="${configuration.name}"></label>
+
+                            <div class="form-group">
+                                <img th:src="@{/images/SUCCESS.png}" th:id="${configuration.parameter} + success" style="width: 30px; display: none" alt="Ring"></img>
+                                <img th:src="@{/images/FAILURE.png}" th:id="${configuration.parameter} + failure" style="width: 30px; display: none" alt="Ring"></img>
+
+                                <div class="col-sm-10">
+                                    <div th:if="${configuration.type == 'number'}">
+                                        <input th:name="${configuration.name}" 
+                                               th:attr="type=${configuration.type},min=${configuration.minLength},max=${configuration.maxLength}"                                                    
+                                               class="form-control" 
+                                               th:id="${configuration.parameter}" 
+                                               th:value="${configuration.value}" 
+                                               required="true"/>                                    
+                                    </div>
+
+                                    <div th:if="${configuration.type != 'number'}">
+                                        <input th:name="${configuration.name}"
+                                               th:attr="type=${configuration.type},minLength=${configuration.minLength},maxLength=${configuration.maxLength}"                                                    
+                                               class="form-control" 
+                                               th:id="${configuration.parameter}" 
+                                               th:value="${configuration.value}" 
+                                               th:pattern="${configuration.pattern}" 
+                                               required="true"/>                                    
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Maintenance</legend>                    
+                        <div class="btn-group">
+                            <a class="btn btn-generic btn-sm" th:id="modal_change_logo" title="Update application logo">                                         
+                                <span class="glyphicon glyphicon-upload" aria-hidden="true"></span> Update logo
+                            </a>
+
+                            <a class="btn btn-generic btn-space btn-sm" th:href="@{/job/refresh/}" title="Update application cache">
+                                <span class="glyphicon glyphicon-refresh"></span> Update cache 
+                            </a>
+
+                            <a class="btn btn-delete btn-space btn-sm" th:attr="onclick='modalUpdate();'"  title="Update notification plugin" >
+                                <span class="glyphicon glyphicon-plane" aria-hidden="true"></span> 
+                                Update plugin
+                            </a>
+                        </div>
+                    </fieldset>
+                </form>
+
+                <!--Modal--> 
+                <div id="modalHolder"/>
+
+                <!--Begin update modal-->
+                <div class="modal fade" id="modalUpdate" tabindex="-1" role="dialog" aria-labelledby="modalUpate">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h4 class="modal-title" id="modalParentLabel"> 
+                                    <span>Notification plugin</span>
+                                </h4>
+                            </div>
+                            <div class="modal-body">
+                                <span>Are you sure you want to update the Notification Plugin for all jobs?</span>
+                            </div>
+                            <div class="modal-footer" id="buttons"> 
+                                <a id="modalConfirmUpdate" class="col-xs-5 col-sm-5 col-md-5 btn btn-default btn-sm">
+                                    Yes
+                                </a>
+                                <a id="modalDontConfirmUpdate" class="col-xs-5 col-sm-5 col-md-5 btn btn-default btn-sm" data-dismiss="modal" aria-label="Close">
+                                    No
+                                </a>
+                                <center>
+                                    <button id="modal_wait" type="button" class="btn btn-default btn-sm" style="display:none;">
+                                        <img th:src="@{'/images/ajax-loader.gif'}"></img>
+                                    </button>
+                                </center>
+                            </div>                            
+                        </div>
+                    </div>
+                </div>
+                <!--End update modal-->
+            </div>
+        </div>
+        <script th:inline="javascript">
+            // Save the especific input configuration on database.
+            $("input").blur(function () {
+                var value = $(this).val();
+                var id = $(this).attr("id");
+                var name = $(this).attr("name");
+                var url = /*[[@{/settings/save/}]]*/ "/settings/save/";
+
+                if (this.checkValidity()) {
+                    $.ajax({
+                        type: "POST",
+                        contentType: 'application/json; charset=utf-8',
+                        dataType: 'json',
+                        url: url + id,
+                        data: value,
+                        success: function (result) {
+                            // Identify the operation status. 
+                            if (result) {
+                                $("#" + id + "success").show();
+                                $("#" + id + "failure").hide();
+
+                                $("#errorMessage").hide();
+                            } else {
+                                $("#" + id + "failure").show();
+                                $("#" + id + "success").hide();
+                            }
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            // Show error message on fail. 
+                            $("#" + id + "failure").show();
+                            $("#" + id + "success").hide();
+
+                            $("#errorMessage").show();
+                            $("#errorMessage").text("Error trying to save configuration " + id);
+
+                        },
+
+                        beforeSend: function (xhr) {
+                            var token = $("input[name='_csrf']").val();
+                            var header = "X-CSRF-TOKEN";
+
+                            xhr.setRequestHeader(header, token);
+                        }
+                    });
+
+                } else {
+                    // Show the validation message on constraint fail. 
+                    $("#" + id + "failure").show();
+                    $("#" + id + "success").hide();
+
+                    $("#errorMessage").show();
+                    $("#errorMessage").text(name + ": " + this.validationMessage);
+
+                    $(this).focus();
+                }
+            });
+
+            /**
+             * Show change logo modal.
+             * @returns {undefined}
+             */
+            $("#modal_change_logo").click(function () {
+                var url = /*[[@{/customization/modal/logo/}]]*/ "/customization/modal/logo/";
+
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    timeout: 30000,
+                    success: function (result) {
+                        $("#modalHolder").html(result);
+                        $("#modalChangeLogo").modal({backdrop: 'static', keyboard: false});
+                    },
+                    error: function (e) {
+                        alert("Error loading change logo modal " + JSON.stringify(e));
+                    },
+                    beforeSend: function (xhr) {
+                            var token = $("input[name='_csrf']").val();
+                            var header = "X-CSRF-TOKEN";
+
+                            xhr.setRequestHeader(header, token);
+                        }
+                });
+            });
+
+            /**
+             * Show the update notification plugin modal.
+             * 
+             * @returns {undefined}
+             */
+            function modalUpdate() {
+                $("#modalUpdate").modal({backdrop: 'static', keyboard: false});
+            }
+
+            $("#modalConfirmUpdate").click(function () {
+                var url = /*[[@{/job/maintenance/plugin/}]]*/ "/job/maintenance/plugin/";
+
+                // Hide control buttons and appears loading bar.
+                $("#modalConfirmUpdate").hide();
+                $("#modalDontConfirmUpdate").hide();
+                $("#modal_wait").show();
+
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    timeout: 30000,
+                    success: function (result) {
+                        location.reload();
+                    },
+                    error: function (e) {
+                        alert("Error updating plugin. " + e);
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

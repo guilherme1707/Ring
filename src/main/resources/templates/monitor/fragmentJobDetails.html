@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>        
+        <div class="container">
+            <!--Fragment-->
+            <div th:fragment="jobDetails">
+                <table id="table" class="table table-striped dataTable no-footer">
+                    <thead> 
+                        <tr>
+                            <th style="width:5%" class="img-sort">Status</th>
+                            <th style="width:10%">Server</th>
+                            <th style="width:43%">Job</th>  
+                            <th style="width:1.5%"><span class="glyphicon glyphicon-exclamation-sign" title="Warning"></span></th>
+                            <th style="width:1.5%" class="no-sort"><span class="glyphicon glyphicon-link" title="Link"></span></th>
+                            <th style="width:1.5%"><span class="glyphicon glyphicon-heart-empty" title="Check-Up"></span></th>
+                            <th style="width:18%">Scope</th>
+                            <th style="width:16%">Update</th>
+                            <th style="width:1%" class="no-sort"></th>
+                            <th style="width:1%" class="no-sort"></th>
+                            <th style="width:1%" class="no-sort"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="jobDetail : ${jobDetails}">
+                            <td>
+                                <img class="status" th:src="@{'/images/' + ${jobDetail.status} + '.png'}" th:attr="alt=${ jobDetail.status }" th:title="${jobDetail.status}"></img>
+                            </td>
+                            <td th:text="${jobDetail.job.server.name}">Server</td>
+                            <td>
+                                <a class="link" th:href="@{'/flow/job/'  + ${jobDetail.job.id}}" th:text="${jobDetail.job.displayName}"></a>
+                            </td>
+                            <div th:switch="${#lists.isEmpty(jobDetail.warning)}">
+                                <div th:case="true">
+                                    <div th:if="${#lists.isEmpty(jobDetail.warning)}">
+                                        <td></td>
+                                    </div>
+                                </div>
+
+                                <div th:case="false">                                       
+                                    <td>
+                                        <button class="btn btn-link hanger-no-border" 
+                                                th:inline="text" 
+                                                th:id="'modal_warning_' + ${jobDetail.job.id}" 
+                                                th:attr="onclick='showJobWarning(' + ${jobDetail.job.id} + ');'"
+                                                th:value="${jobDetail.job.id}">[[${#lists.size(jobDetail.warning)}]]</button>
+                                    </td>
+                                </div>
+                            </div>
+                            <td>
+                                <a class="link" th:href="@{ ${jobDetail.job.server.url} + 'job/' + ${jobDetail.job.name}}" target="_blank"> +</a>
+                            </td>
+                            <td>
+                                <div th:if="${ not #lists.isEmpty(jobDetail.job.checkup) }">
+                                    <a th:href="@{'/checkup/job/' + ${jobDetail.job.id} + '/list'}" target="_blank">
+                                        +
+                                    </a>
+                                </div>                                
+                            </td>
+                            <td th:text="${jobDetail.scope}">Scope</td>
+                            <td th:text="${jobDetail.buildTime}">Build time</td>
+                            <td>
+                                <div sec:authorize="isAuthenticated()">                            
+                                    <button class="btn btn-generic btn-xs pull-right" 
+                                            th:if="${jobDetail.job.enabled}"
+                                            th:attr="onclick='buildJob(' + ${jobDetail.job.id} + ', \'' + ${jobDetail.job.name} + '\');'">
+
+                                        <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Build
+                                    </button>
+                                </div>
+                            </td>                            
+                            <td>
+                                <div th:if="${ 
+                                     ( #httpServletRequest.isUserInRole('ADMIN') or #httpServletRequest.isUserInRole('HERO') ) and 
+                                     not ( #httpServletRequest.getRequestURI().contains('detail/all') or  #httpServletRequest.getRequestURI().contains('search') ) }">
+
+                                    <button class="btn btn-delete btn-xs pull-right" 
+                                            th:attr="onclick='deleteJobModal('+${jobDetail.job.id} + ',' + ${currentSubject.id} + ', \'' + ${jobDetail.job.name} + '\', \'' +${currentSubject.name}+ '\');'">
+                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete
+                                    </button>
+                                </div>
+                            </td>
+                            <td>
+                                <div th:if="${jobDetail.approval}">
+                                    <a class="btn btn-approval btn-xs pull-right" th:href="@{'/approval/approval/'+${jobDetail.job.id} }" title="Approval" target="_blank">
+                                        <span class="glyphicon glyphicon-check"></span> Approval
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>  
+                </table>
+
+                <div id="modalHolder"/>
+
+                <script th:inline="javascript">
+                    /**
+                     * Show the job warning list. 
+                     * 
+                     * @param {type} id
+                     * @returns {undefined}
+                     */
+                    function showJobWarning(id) {
+                        var url = /*[[@{/flow/warning/}]]*/ "/flow/warning/";
+
+                        $.ajax({
+                            type: "GET",
+                            url: url + id,
+                            timeout: 30000,
+                            success: function (result) {
+                                $("#modalHolder").html(result);
+                                $("#modalWarning").modal({backdrop: 'static', keyboard: false});
+                            },
+                            error: function (e) {
+                                alert("Fail loading job warning " + e);
+                            }
+                        });
+                    }
+
+                    /**
+                     * Build a job and show the result as a toast message.
+                     * 
+                     * @param {type} id ID
+                     * @param {type} name
+                     * @returns {undefined}
+                     */
+                    function buildJob(id, name) {
+                        var url = /*[[@{/job/build/silently/}]]*/ "/job/build/silently/";
+
+                        toastr.options = {
+                            "closeButton": true,
+                            "progressBar": true,
+                            "positionClass": "toast-top-right",
+                            "timeOut": "2500",
+                            "showEasing": "swing",
+                            "hideEasing": "linear",
+                            "showMethod": "fadeIn",
+                            "hideMethod": "fadeOut"
+                        }
+
+                        $.ajax({
+                            type: "GET",
+                            url: url + id,
+                            timeout: 30000,
+                            success: function (result) {
+                                if (result) {
+                                    toastr.success('Successfully built job ' + name);
+                                } else {
+                                    toastr.error('Error building job ' + name);
+                                }
+                            },
+                            error: function (e) {
+                                toastr.error('Error on building request of ' + name);
+                            }
+                        });
+                    }
+                </script>
+            </div>
+        </div>       	
+    </body>
+</html>

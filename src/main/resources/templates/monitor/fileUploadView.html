@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>
+        <h2>Submitted File</h2>
+        <table>
+            <tr>
+                <td>OriginalFileName:</td>
+                <td th:text="${file.originalFilename}"></td>
+            </tr>
+            <tr>
+                <td>Type:</td>
+                <td th:text="${file.contentType}" ></td>
+            </tr>
+        </table>
+    </body>
+</html>

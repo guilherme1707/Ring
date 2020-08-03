@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:fragment="head" >
+        <!--HEAD FRAGMENT BEGIN-->
+        <title>Ring</title>
+
+        <meta http-equiv="Content-Type" content="text/html" charset="UTF-8"/>        
+
+        <!--CSFR Token-->
+        <meta id="_csrf" name="_csrf" th:content="${_csrf.token}"/>
+        <meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+        <!--Favicon taken from: https://icons-for-free.com/ -->
+        <link rel="shortcut icon" th:href="@{/images/favicon.ico}" type="image/x-icon" />
+
+        <!--CSS-->        
+        <link rel="stylesheet" th:href="@{/css/bootstrap_3.0.3.min.css}" id="bootstrap-css"/>
+        <link rel="stylesheet" th:href="@{/webjars/datatables/1.10.19/css/dataTables.bootstrap.min.css}"/>
+        <link rel="stylesheet" th:href="@{/webjars/bootstrap/3.3.7-1/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/webjars/bootstrap-select/1.12.4/css/bootstrap-select.min.css}"/>
+        <!--<link rel="stylesheet" th:href="@{/css/Treant.css}"/>-->
+        <link rel="stylesheet" th:href="@{/css/prism.css}"/>
+        <link rel="stylesheet" th:href="@{/css/bootstrap-toggle.min.css}"/>
+        <link rel="stylesheet" th:href="@{/css/daterangepicker.css}"/>
+        <link rel="stylesheet" th:href="@{/css/ring.css}"/>
+        <link rel="stylesheet" th:href="@{/css/bootstrap-slider.css}"/>
+        <link rel="stylesheet" th:href="@{/css/bootstrap-datepicker3.min.css}"/>
+        <link rel="stylesheet" th:href="@{/css/toastr.min.css}"/>
+        <link rel="stylesheet" th:href="@{/css/default.min.css}"/>
+        <!--<link rel="stylesheet" th:href="@{/css/dhtmlxgantt.css}"/>   -->
+        <link rel="stylesheet" th:href="@{/css/codemirror.css}"/>
+        <link rel="stylesheet" th:href="@{/css/context-menu.min.css}"/>
+        
+        <!-- Plugin jsTree -->
+        <link rel="stylesheet" th:href="@{/css/themes/default/style.min.css}"/>
+
+        <!--JS-->
+        <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+        <script th:src="@{/webjars/bootstrap/3.3.7-1/js/bootstrap.min.js}"></script>
+        <script th:src="@{/webjars/bootstrap-select/1.12.4/js/bootstrap-select.min.js}"></script>
+        <script th:src="@{/webjars/datatables/1.10.19/js/jquery.dataTables.min.js}"></script>
+        <script th:src="@{/webjars/datatables/1.10.19/js/dataTables.bootstrap.min.js}"></script>
+        <!--<script th:src="@{/js/Treant.js}"/>  -->
+        <script th:src="@{/js/raphael.min.js}"></script>
+        <script th:src="@{/js/prism.js}"></script>
+        <script th:src="@{/js/alt-string.js}"></script>
+        <script th:src="@{/js/jquery.cookie.js}"></script>
+        <script th:src="@{/js/bootstrap-toggle.min.js}"></script>
+        <script th:src="@{/js/moment.min.js}"></script>
+        <script th:src="@{/js/daterangepicker.js}"></script>
+        <script th:src="@{/js/dragscroll.js}"></script>
+        <script th:src="@{/js/bootstrap-slider.js}"></script>
+        <script th:src="@{/js/bootstrap-datepicker.min.js}"></script>
+        <script th:src="@{/js/ring.js}"></script>
+        <script th:src="@{/js/toastr.js}"></script>
+        <script th:src="@{/js/dhtmlxgantt.js}"></script>
+        <!-- <script th:src="@{/js/codemirror.js}"></script>  -->
+        <!--<script th:src="@{/js/codemirror-sql.js}"></script>  -->
+        <script th:src="@{/js/context-menu.min.js}"></script>
+        <script th:src="@{/js/jstree.min.js}"></script>
+
+        <!--HEAD FRAGMENT END-->
+    </head>
+    <body>
+        <div th:fragment="navbar">
+            <!--NAVBAR FRAGMENT BEGIN-->
+            <div id="wrapper">
+                <div id="sidebar-wrapper">
+                    <ul id="sidebar_menu" class="sidebar-nav">
+                        <li class="sidebar-brand">
+                            <a th:href="@{/}" title="Ring">
+                                <img class="logo" th:src="@{/customization/logo}"/>
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="sidebar-nav" id="sidebar">
+                        <li th:classappend="${#httpServletRequest.getRequestURI() == '/' 
+                            || #httpServletRequest.getRequestURI() == '/ring/'
+                            || #httpServletRequest.getRequestURI().contains('/home') ? 'active':''}"><a th:href="@{/}" title="Home"><span class="sub_icon glyphicon glyphicon-home"></span>Home</a></li>
+                        <li th:classappend="${#httpServletRequest.getRequestURI().contains('/manual-input') ? 'active':''}"><a th:href="@{/manual-input/list}" title="Manual Input"><span class="sub_icon glyphicon glyphicon-file"></span>Manual Input</a></li>
+                        <li th:classappend="${#httpServletRequest.getRequestURI().contains('/search/') ? 'active':''}"><a th:href="@{/search/search}" title="Search"><span class="sub_icon glyphicon glyphicon-search"></span>Search</a></li>
+                        <li th:classappend="${#httpServletRequest.getRequestURI().contains('/group/') ? 'active':''}"><a th:href="@{/group/list}" title="Group"><span class="sub_icon glyphicon glyphicon-tag"></span>Group</a></li>
+                        <!--<li th:classappend="${#httpServletRequest.getRequestURI().contains('/log/') ? 'active':''}"><a th:href="@{/log/list}" title="Log"><span class="sub_icon glyphicon glyphicon-sunglasses"></span>Log</a></li>-->
+                        <li th:classappend="${#httpServletRequest.getRequestURI().contains('/user/') ? 'active':''}"><a th:href="@{/user/list}" title="User"><span class="sub_icon glyphicon glyphicon-user"></span>User</a></li>
+                        <li th:classappend="${#httpServletRequest.getRequestURI().contains('/settings/') ? 'active':''}"><a th:href="@{/settings/edit}" title="Configuration"><span class="sub_icon glyphicon glyphicon-cog"></span>Configuration</a></li>
+                        <li th:classappend="${#httpServletRequest.getRequestURI().contains('/swagger') ? 'active':''}"><a th:href="@{/swagger-ui.html}" title="API Rest"><span class="sub_icon glyphicon glyphicon-console"></span>API Rest</a></li>
+                    </ul>
+
+                    <div class="login_logout">
+                        <span sec:authorize="isAuthenticated()">
+                            <div>
+                                <div>
+                                    <p th:attr="data-letters=${#authentication.getPrincipal().getFirstName().substring(0, 1) + #authentication.getPrincipal().getLastName().substring(0, 1)}" 
+                                       class="text-center profile-icon" 
+                                       th:classappend="'profile-icon-color-' + ${T(Math).abs(#authentication.getPrincipal().getId() % 5)}">
+                                    </p>
+
+                                    <p th:inline="text" 
+                                       class="text-center">
+                                        [[${#authentication.getPrincipal().getFirstName() + ' ' + #authentication.getPrincipal().getLastName()}]]
+                                    </p>
+                                </div>
+                                <a href="#" onclick="javascript:logoutForm.submit();" th:inline="text" title="Login">
+                                    <div class="text-center">Logout<span class="glyphicon glyphicon-off" style="margin-left:5px"></span></div>
+                                </a>
+                                <form th:action="@{/logout}" method="post" id="logoutForm">
+                                    <input type="hidden"
+                                           name="${_csrf.parameterName}"
+                                           value="${_csrf.token}" />
+                                </form>
+                            </div>
+                        </span>
+
+                        <span sec:authorize="!isAuthenticated()">
+                            <div>
+                                <a th:href="@{/login}" th:inline="text" title="Login">
+                                    <div class="text-center">Login<span class="glyphicon glyphicon-log-in" style="margin-left:5px"></span></div>
+                                </a>
+                            </div>
+                        </span>
+                    </div>
+                </div>
+                <div id="page-content-wrapper">
+                    <div class="page-content inset">
+                    </div>
+                </div>
+            </div>
+            <!--NAVBAR FRAGMENT END-->
+        </div>
+    </body>
+</html>

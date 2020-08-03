@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>
+        <th:block th:include="base/header :: navbar"></th:block>
+        <div class="container-fluid main-content">
+            <div class="row" style="margin-top:5%">
+                <img th:src="@{/images/lock.png}" style="display: block;margin-left: auto;margin-right: auto;width: 6%" alt="Ring Security"></img>
+            </div>
+            <div class="row" style="margin-top:20px">
+                <div class="col-xs-6 col-sm-6 col-md-6 col-sm-offset-2 col-md-offset-3">
+                    <form th:action="@{/login}" method="post">
+                        <fieldset>
+                            <div class="form-group">
+                                <input type="text" name="username" id="username" class="form-control"
+                                       placeholder="Username" required="true" autofocus="true"/>
+                            </div>
+
+                            <div class="form-group">
+                                <input type="password" name="password" id="password" class="form-control"
+                                       placeholder="Password" required="true" />
+                            </div>
+
+                            <div th:if="${param.error}" class="form-group">
+                                <div class="alert alert-danger" role="alert">
+                                    <span>Invalid username or password!</span>
+                                </div>  
+                            </div>
+
+                            <center>
+                                <div class="form-group">
+                                    <a data-toggle="modal" data-target="#modalForgotPass" href="">I forgot my password</a>
+                                </div>
+
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-generic btn-sm">
+                                        <span class="glyphicon glyphicon-log-in" style="margin-right:5px" aria-hidden="true"></span> Sign In
+                                    </button>
+                                </div>
+                            </center>
+                        </fieldset>
+                    </form>
+
+                    <!--Forget pass modal-->
+                    <div class="modal fade" id="modalForgotPass" tabindex="-1" role="dialog" aria-labelledby="modalForgotPassLabel">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    <h4 class="modal-title" id="modalParentLabel">Password reset</h4>
+                                </div>
+                                <form th:object="${user}" th:action="@{/user/list}" method="post" id="formReset" >
+                                    <div class="modal-body">
+                                        <input type="text" th:field="*{username}" class="form-control" placeholder="Inform your user name here" id="usernameRec"/>
+                                    </div>
+                                    <div class="modal-footer">   
+                                        <center>
+                                            <button type="button" class="btn btn-default btn-sm" onclick="sendPost();">
+                                                <span class="glyphicon glyphicon-send" aria-hidden="true"></span> Send me
+                                            </button>
+                                        </center>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <center>
+                        <div class="row space-top" th:if="${not #lists.isEmpty(logged)}">
+                            <legend>Join us</legend>
+                            <div class="column" th:each="principal : ${logged}">
+                                <p th:attr="data-letters=${principal.firstName.substring(0, 1) + principal.lastName.substring(0, 1)}" 
+                                   th:title="${principal.firstName + ' ' + principal.lastName}" 
+                                   class="text-center profile-icon profile-icon-sm" 
+                                   th:classappend="'profile-icon-color-' + ${ T(Math).abs( principal.id % 5 ) }">
+                                </p>
+                            </div>
+                        </div>
+                    </center>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" th:inline="javascript">
+            /*<![CDATA[*/
+            $(document).ready(function () {
+                $('#usernameRec').on('keyup keypress', function (e) {
+                    var keyCode = e.keyCode || e.which;
+                    if (keyCode === 13) {
+                        e.preventDefault();
+                        sendPost();
+                    }
+                });
+            });
+
+            function sendPost() {
+                var username = document.getElementById("usernameRec").value;
+                username = username.replace(".", "_");
+                var form = document.getElementById("formReset");
+                form.action = "user/confirmation/" + username;
+                if (username !== null && username !== "") {
+                    form.submit();
+                } else {
+                    alert("undefined username!");
+                }
+            }
+            /*]]>*/
+        </script>
+    </body>
+</html>

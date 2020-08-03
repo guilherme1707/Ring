@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head lang="en" th:replace="base/header :: head">
+        <title>Ring</title>
+    </head>
+    <body>
+        <th:block th:include="base/header :: navbar"></th:block>
+        <div class="container">
+            <!--OPTION FRAGMENT BEGIN-->
+            <div class="modal fade" id="modalJobList" tabindex="-1" role="dialog" aria-labelledby="modalJobListLabel" th:fragment="job">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="modalJobListLabel">Job approver replacement</h4>
+                        </div>
+                        <form th:object="${user}" method="post" th:action="@{'/user/' + ${type} + '/' + ${user.id}}">
+                            <div class="modal-body">
+                                <div style="height: 300px; overflow-y: auto;">
+                                    <div class="form-group">  
+                                        <div class="col-sm-12">
+                                            <label th:inline="text">Approver</label>
+                                            <select class="selectpicker form-control col-xs-6" data-live-search="true" th:field="*{id}" placeholder="Approver">
+                                                <option value=""></option>
+                                                <option th:each="u : ${users}"
+                                                        th:value="${u.id}"
+                                                        th:text="${u.fullName}"
+                                                        th:if="${u.id != user.id}">
+                                                </option>
+                                            </select>     
+                                        </div>
+                                    </div>
+                                    <div class="form-group">  
+                                        <div class="col-sm-12">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Job</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr th:each="job : ${jobs}">
+                                                        <td th:text="${job.name}"></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">
+                                    <span aria-hidden="true"></span> Cancel
+                                </button>
+                                <button type="submit" name="" class="btn btn-default btn-sm">
+                                    <span aria-hidden="true"></span> Confirm
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!--OPTION FRAGMENT END-->
+        </div>
+    </body>
+</html>
