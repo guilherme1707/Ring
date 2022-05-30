@@ -9,7 +9,7 @@
 
 This Diagram show how Ring is expected to work in the business.
 
-![Ring BPM](https://raw.githubusercontent.com/dafiti-group/ring/master/RingBPM.png)
+![Ring BPM](https://raw.githubusercontent.com/guilherme1707/Ring/master/RingBPM.png)
 
 ## Instalation
 
